@@ -149,8 +149,7 @@ class GoogleImage:
             name_img = f'{self.name}_{n_downloads:0{n_str}d}'
             file = self._download_img(url,
                                       directory=directory,
-                                      name=name_img,
-                                      ext_default=self.ext_default)
+                                      name=name_img)
 
         # verify download
             if file is not None:
