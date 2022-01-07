@@ -14,10 +14,6 @@ from tqdm import tqdm
 from selenium import webdriver
 
 
-global VALID_EXTENSION
-global BLOC_IMAGE
-global BLOC_END
-global BLOC_POP
 VALID_EXTENSION = (".png", ".jpg", ".jpeg")
 BLOC_IMAGE = 'isv-r'
 BLOC_END = 'mye4qd'
