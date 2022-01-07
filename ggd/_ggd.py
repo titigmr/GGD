@@ -190,9 +190,9 @@ class GoogleImage:
                         by="class name", value='isv-r')) > n_images + 1:
                     break
 
-    def _build_path_name(self, ext, ext_default, directory, make_dir, name):
+    def _build_path_name(self, ext, directory, make_dir, name):
         if ext not in self.valid_extensions:
-            ext = ext_default
+            ext = self.ext_default
         name += ext
         path = self._create_path_name(directory=directory,
                                       make_dir=make_dir)
@@ -207,7 +207,6 @@ class GoogleImage:
                       image_url,
                       name,
                       directory=None,
-                      ext_default='.png',
                       make_dir=True):
         """
         Download image with an image url or a base64 encoded binary
@@ -217,7 +216,6 @@ class GoogleImage:
         if 'http' in image_url:
             ext = pathlib.Path(image_url).suffix
             file = self._build_path_name(ext=ext,
-                                         ext_default=ext_default,
                                          name=name,
                                          directory=directory,
                                          make_dir=make_dir)
@@ -230,7 +228,6 @@ class GoogleImage:
         elif 'base64' in image_url:
             ext = re.findall('data:image/(.*);', image_url)
             file = self._build_path_name(ext=ext,
-                                         ext_default=ext_default,
                                          name=name,
                                          directory=directory,
                                          make_dir=make_dir)
