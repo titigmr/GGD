@@ -16,6 +16,9 @@ from tqdm import tqdm
 from selenium import webdriver
 
 
+VALID_EXTENSION = (".png", ".jpg", ".jpeg")
+
+
 def create_webdriver(headless=False, web_driver='firefox', **kwargs):
     """
     Create an webdriver object
@@ -107,7 +110,7 @@ class GoogleImage:
         url = f"https://www.google.fr/search?q={request}&tbm=isch&pws=0"
         n_downloads = 0
         n_unload = 0
-        self.valid_extensions = (".png", ".jpg", ".jpeg")
+        self.valid_extensions = VALID_EXTENSION
         n_str = len(str(n_images))
         self.name = str(request) if name is None else str(name)
 
