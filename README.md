@@ -12,12 +12,12 @@ This package is available on pypi repository
 pip install ggd
 ```
 
-Is required using a webdriver ([Geckodriver](https://github.com/mozilla/geckodriver/releases), [Chromedriver](https://chromedriver.chromium.org/downloads), etc...) and the executable in the path.
+Is required using a webdriver ([Geckodriver](https://github.com/mozilla/geckodriver/releases), [Chromedriver](https://chromedriver.chromium.org/downloads), etc...) and have the executable in the path.
 
 The folowing command can be used in linux64 platform
 
 ```bash
-wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz && tar -zxvf geckodriver-v0.30.0-linux64.tar.gz && rm geckodriver-v0.30.0-linux64.tar.gz && mv geckodriver /bin
+wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz && tar -zxvf geckodriver-v0.30.0-linux64.tar.gz && rm geckodriver-v0.30.0-linux64.tar.gz && mv geckodriver /bin/
 ```
 
 
@@ -47,9 +47,9 @@ print(gg.all_files)
     ...]
 ```
 
-## Advanced usage
+## Advanced Usage
 
-For using this package with more requests labeled and scraping wotking in backend.
+For using this package with more requests labeled and scraping working in backend.
 
 ```python
 driver = create_webdriver(headless=True)
@@ -69,4 +69,4 @@ google_dl.close()
 
 For multiplying number and variety of images, use [Google filtering](https://www.numipage.com/mieux-chercher-sur-google-avec-les-filtres-et-les-operateurs-de-recherche/)* in requests , synonyms, other languages...
 
-**link in french*
+**article in french*
