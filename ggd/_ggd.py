@@ -17,7 +17,9 @@ from selenium import webdriver
 
 
 VALID_EXTENSION = (".png", ".jpg", ".jpeg")
-
+BLOC_IMAGE = 'isv-r'
+BLOC_END = 'mye4qd'
+BLOC_POP = 'n3VNCb'
 
 def create_webdriver(headless=False, web_driver='firefox', **kwargs):
     """
@@ -125,7 +127,7 @@ class GoogleImage:
 
         # get all images
         all_img = self.driver.find_elements(
-            by='class name', value='isv-r')[:n_images]
+            by='class name', value=BLOC_IMAGE)[:n_images]
 
         if self.verbose:
             all_img = tqdm(all_img, desc=self.name, leave=True)
@@ -140,7 +142,7 @@ class GoogleImage:
                     all_img.set_postfix({'unloaded': n_unload})
                 continue
 
-            img_url = self.driver.find_element(by="class name", value='n3VNCb')
+            img_url = self.driver.find_element(by="class name", value=BLOC_POP)
             url = img_url.get_attribute('src')
             name_img = f'{self.name}_{n_downloads:0{n_str}d}'
             file = self._download_img(url,
@@ -181,7 +183,7 @@ class GoogleImage:
             new_height = driver.execute_script(
                 "return document.body.scrollHeight")
             if new_height == last_height:
-                actualise = driver.find_element(by="class name", value='mye4qd')
+                actualise = driver.find_element(by="class name", value=BLOC_END)
                 if actualise.size['height'] > 0 and actualise.size['width'] > 0:
                     actualise.click()
                 else:
@@ -189,7 +191,7 @@ class GoogleImage:
             last_height = new_height
             if n_images > 0:
                 if len(driver.find_elements(
-                        by="class name", value='isv-r')) > n_images + 1:
+                        by="class name", value=BLOC_IMAGE)) > n_images + 1:
                     break
 
     def _build_path_name(self, ext, directory, name):
