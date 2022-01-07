@@ -70,8 +70,8 @@ class GoogleImage:
 
         ---
         Use example:
-        >>> from selenium import webdriver
-        >>> driver = webdriver.Firefox()
+        >>> from ggd import create_webdriver
+        >>> driver = create_webdriver()
         >>> google_dl = GoogleImage(driver=driver)
         >>> request = 'Cat'
         >>> google_dl.download(request=request, n_images=10)
