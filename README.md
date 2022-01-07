@@ -12,6 +12,15 @@ This package is available on pypi repository
 pip install ggd
 ```
 
+Is required using a webdriver ([Geckodriver](https://github.com/mozilla/geckodriver/releases), [Chromedriver](https://chromedriver.chromium.org/downloads), etc...) and the executable in the path.
+
+The folowing command can be used in linux64 platform
+
+```bash
+wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz && tar -zxvf geckodriver-v0.30.0-linux64.tar.gz && rm geckodriver-v0.30.0-linux64.tar.gz && mv geckodriver /bin
+```
+
+
 ## Simple Usage
 
 
