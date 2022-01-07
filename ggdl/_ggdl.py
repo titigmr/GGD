@@ -13,9 +13,9 @@ import time
 
 import selenium
 from tqdm import tqdm
+from selenium import webdriver
 
-
-def create_webdriver(headless=False, webdriver='firefox', **kwargs):
+def create_webdriver(headless=False, web_driver='firefox', **kwargs):
     """
     Create an webdriver object
 
@@ -25,13 +25,13 @@ def create_webdriver(headless=False, webdriver='firefox', **kwargs):
         webdriver: str, choice of webdriver (default 'firefox')
         **kwargs: other parameters for webdriver
     """
-    options = getattr(selenium.webdriver, webdriver).options.Options()
+    options = getattr(webdriver, web_driver).options.Options()
 
     if headless:
         options.add_argument('--headless')
 
     pager = getattr(
-        selenium.webdriver, webdriver.capitalize())(
+        webdriver, web_driver.capitalize())(
         options=options, **kwargs)
     return pager
 
@@ -49,7 +49,7 @@ class GoogleImage:
 
     def __init__(self,
                  driver,
-                 time_sleep=0,
+                 time_sleep=1,
                  verbose=True,
                  ext_default='.png',
                  close_after_download=True,
@@ -58,8 +58,8 @@ class GoogleImage:
         Download images from Google Image with a webdriver selenium.
 
             driver: selenium webdriver (Chrome, Firefox or Safari) used to web-scraping.
-            time_sleep: time waiting in secondes for download each images (default: 1)
-                    NOTE: If images are not downloaded, increase this parameter.
+            time_sleep: time waiting in secondes for scrolling (default: 1)
+                    NOTE: If number of images downloaded is not correct, increase this parameter.
             verbose: bool, show progress bar (default: True).
             ext_default: str, when images has no extension, the default extension
                     will be added (default: '.png').
@@ -138,7 +138,6 @@ class GoogleImage:
 
             img_url = self.driver.find_element(by="class name", value='n3VNCb')
             url = img_url.get_attribute('src')
-            time.sleep(self.time_sleep)
             name_img = f'{self.name}_{n_downloads:0{n_str}d}'
             file = self._download_img(url,
                                       directory=directory,
