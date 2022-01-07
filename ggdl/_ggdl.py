@@ -121,7 +121,7 @@ class GoogleImage:
 
         # get all images
         all_img = self.driver.find_elements(
-            by='class name', value='isv-r')[:n_images + 1]
+            by='class name', value='isv-r')[:n_images]
 
         if self.verbose:
             all_img = tqdm(all_img, desc=self.name, leave=True)
@@ -186,7 +186,7 @@ class GoogleImage:
             last_height = new_height
             if n_images > 0:
                 if len(driver.find_elements(
-                        by="class name", value='isv-r')) > n_images:
+                        by="class name", value='isv-r')) > n_images + 1:
                     break
 
     def _download_img(self,
