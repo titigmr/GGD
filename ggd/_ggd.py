@@ -15,6 +15,7 @@ import selenium
 from tqdm import tqdm
 from selenium import webdriver
 
+
 def create_webdriver(headless=False, web_driver='firefox', **kwargs):
     """
     Create an webdriver object
@@ -189,6 +190,19 @@ class GoogleImage:
                         by="class name", value='isv-r')) > n_images + 1:
                     break
 
+    def _build_path_name(self, ext, ext_default, directory, make_dir, name):
+        if ext not in self.valid_extensions:
+            ext = ext_default
+        name += ext
+        path = self._create_path_name(directory=directory,
+                                      make_dir=make_dir)
+        if path is not None:
+            self._create_directory(path)
+            file = os.path.join(path, name)
+        else:
+            file = name
+        return file
+
     def _download_img(self,
                       image_url,
                       name,
@@ -202,16 +216,11 @@ class GoogleImage:
         """
         if 'http' in image_url:
             ext = pathlib.Path(image_url).suffix
-            if ext not in self.valid_extensions:
-                ext = ext_default
-            name += ext
-            path = self._create_path_name(directory=directory,
-                                          make_dir=make_dir)
-            if path is not None:
-                self._create_directory(path)
-                file = os.path.join(path, name)
-            else:
-                file = name
+            file = self._build_path_name(ext=ext,
+                                         ext_default=ext_default,
+                                         name=name,
+                                         directory=directory,
+                                         make_dir=make_dir)
             try:
                 with open(file, "wb") as f:
                     f.write(requests.get(image_url).content)
@@ -220,16 +229,11 @@ class GoogleImage:
 
         elif 'base64' in image_url:
             ext = re.findall('data:image/(.*);', image_url)
-            if ext not in self.valid_extensions:
-                ext = ext_default
-            name += ext
-            path = self._create_path_name(directory=directory,
-                                          make_dir=make_dir)
-            if path is not None:
-                self._create_directory(path)
-                file = os.path.join(path, name)
-            else:
-                file = name
+            file = self._build_path_name(ext=ext,
+                                         ext_default=ext_default,
+                                         name=name,
+                                         directory=directory,
+                                         make_dir=make_dir)
             try:
                 with open(file, "wb") as f:
                     f.write(base64.b64decode(image_url.split('base64')[1]))
