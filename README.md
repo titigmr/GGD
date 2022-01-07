@@ -43,7 +43,7 @@ print(gg.all_files)
 For using this package with more requests labeled and scraping wotking in backend.
 
 ```python
-driver = webdriver.Firefox(headless=True)
+driver = create_webdriver(headless=True)
 google_dl = GoogleImage(driver=driver,
                         verbose=True,
                         close_after_download=False)
