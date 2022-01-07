@@ -9,7 +9,7 @@ REQUIRED_PACKAGES = [
 
 setup(
     name="ggd",
-    version='0.0.1',
+    version='0.0.2',
     install_requires=REQUIRED_PACKAGES,
     packages=find_packages(),
     description='Google Image Downloader'
