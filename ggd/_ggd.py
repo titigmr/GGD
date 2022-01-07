@@ -210,8 +210,6 @@ class GoogleImage:
                       make_dir=True):
         """
         Download image with an image url or a base64 encoded binary
-
-        NOTE: Need refacto
         """
         if 'http' in image_url:
             ext = pathlib.Path(image_url).suffix
