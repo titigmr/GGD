@@ -9,9 +9,12 @@ import pathlib
 import base64
 import pathlib
 import time
+
 import selenium
 from tqdm import tqdm
 from selenium import webdriver
+
+from .exceptions import HTMLError
 
 
 class Config:
@@ -102,7 +105,8 @@ class GoogleImage:
         Parameters:
         ----------
         request: str, request searched in google image.
-        n_images: int, number of images to download.
+        n_images: int, number of images to download, if value
+                  is -1, select all images in the page.
         directory: str, where images are downloaded.
         name: str, name of the directory and filenames (default: None).
               If None, the name is given by the value of the request.
@@ -124,11 +128,15 @@ class GoogleImage:
         # scroll
         self._scroll(driver=self.driver,
                      time_sleep=self.time_sleep,
-                     n_images=n_images + 1)
+                     n_images=n_images)
 
         # get all images
         all_img = self.driver.find_elements(
-            by='class name', value=self.config.BLOC_IMAGE)[:n_images]
+            by='class name', value=self.config.BLOC_IMAGE)[
+            : None if n_images <= 0 else n_images]
+
+        if not all_img:
+            raise HTMLError(name='BLOC_IMAGE', html=self.config.BLOC_IMAGE)
 
         if self.verbose:
             all_img = tqdm(all_img, desc=self.name, leave=True)
@@ -146,6 +154,8 @@ class GoogleImage:
             img_url = self.driver.find_element(
                 by="class name", value=self.config.BLOC_POP)
             url = img_url.get_attribute('src')
+            if url is None:
+                raise HTMLError(name='BLOC_POP', html=self.config.BLOC_POP)
             name_img = f'{self.name}_{n_downloads:0{n_str}d}'
             file = self._download_img(url,
                                       directory=directory,
@@ -184,16 +194,25 @@ class GoogleImage:
             new_height = driver.execute_script(
                 "return document.body.scrollHeight")
             if new_height == last_height:
-                actualise = driver.find_element(
-                    by="class name", value=self.config.BLOC_END)
+                try:
+                    actualise = driver.find_element(
+                        by="class name", value=self.config.BLOC_END)
+                except:
+                    raise HTMLError(name='BLOC_END', html=self.config.BLOC_END)
                 if actualise.size['height'] > 0 and actualise.size['width'] > 0:
                     actualise.click()
                 else:
                     break
             last_height = new_height
-            if n_images > 0:
-                if len(driver.find_elements(
-                        by="class name", value=self.config.BLOC_IMAGE)) > n_images + 1:
+
+            if n_images >= 0:
+                n_finded = len(
+                    driver.find_elements(
+                        by="class name", value=self.config.BLOC_IMAGE))
+                if not n_finded:
+                    raise HTMLError(name='BLOC_IMAGE',
+                                    html=self.config.BLOC_IMAGE)
+                if n_finded > n_images + 1:
                     break
 
     def _build_path_name(self, ext, directory, name):
