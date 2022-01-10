@@ -61,8 +61,7 @@ class GoogleImage:
                  time_sleep=1,
                  verbose=True,
                  ext_default='.png',
-                 close_after_download=True,
-                 make_dir=True):
+                 close_after_download=True):
         """
         Download images from Google Image with a webdriver selenium.
 
@@ -74,7 +73,6 @@ class GoogleImage:
                     will be added (default: '.png').
             close_after_download: bool, when download is done, close the webdriver
                             (default: True).
-            make_dir: bool, (default: True) create a directory to save images.
 
         ---
         Use example:
@@ -91,14 +89,13 @@ class GoogleImage:
         self.all_files = []
         self.ext_default = ext_default
         self.close_after_download = close_after_download
-        self.make_dir = make_dir
         self.config = Config()
 
     def close(self):
         "Close the webdriver."
         self.driver.close()
 
-    def download(self, request, n_images, directory=None, name=None):
+    def download(self, request, n_images, directory=None, name=None, make_dir=True):
         """
         Download images with the webdriver.
 
@@ -108,8 +105,10 @@ class GoogleImage:
         n_images: int, number of images to download, if value
                   is -1, select all images in the page.
         directory: str, where images are downloaded.
-        name: str, name of the directory and filenames (default: None).
+        name: str, name of the directory (if make_dir is True)
+              and filenames (default: None).
               If None, the name is given by the value of the request.
+        make_dir: bool, (default: True) create a directory to save images.
 
         """
 
@@ -159,7 +158,8 @@ class GoogleImage:
             name_img = f'{self.name}_{n_downloads:0{n_str}d}'
             file = self._download_img(url,
                                       directory=directory,
-                                      name=name_img)
+                                      name=name_img,
+                                      make_dir=make_dir)
 
         # verify download
             if file is not None:
@@ -215,11 +215,11 @@ class GoogleImage:
                 if n_finded > n_images + 1:
                     break
 
-    def _build_path_name(self, ext, directory, name):
+    def _build_path_name(self, ext, directory, name, make_dir):
         if ext not in self.valid_extensions:
             ext = self.ext_default
         name += ext
-        path = self._create_path_name(directory=directory)
+        path = self._create_path_name(directory=directory, make_dir=make_dir)
         if path is not None:
             self._create_directory(path)
             file = os.path.join(path, name)
@@ -230,7 +230,8 @@ class GoogleImage:
     def _download_img(self,
                       image_url,
                       name,
-                      directory=None):
+                      directory=None,
+                      make_dir=True):
         """
         Download image with an image url or a base64 encoded binary
         """
@@ -238,7 +239,8 @@ class GoogleImage:
             ext = pathlib.Path(image_url).suffix
             file = self._build_path_name(ext=ext,
                                          name=name,
-                                         directory=directory)
+                                         directory=directory,
+                                         make_dir=make_dir)
             try:
                 with open(file, "wb") as f:
                     f.write(requests.get(image_url).content)
@@ -249,7 +251,8 @@ class GoogleImage:
             ext = re.findall('data:image/(.*);', image_url)
             file = self._build_path_name(ext=ext,
                                          name=name,
-                                         directory=directory)
+                                         directory=directory,
+                                         make_dir=make_dir)
             try:
                 with open(file, "wb") as f:
                     f.write(base64.b64decode(image_url.split('base64')[1]))
@@ -274,12 +277,12 @@ class GoogleImage:
         """
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
-    def _create_path_name(self, directory=None):
+    def _create_path_name(self, directory=None, make_dir=True):
         """
         Build the path name where image is saved
         """
-        directory = '' if directory is None else directory
-        if self.make_dir:
+        if make_dir:
+            directory = '' if directory is None else directory
             path = os.path.join(directory, self.name)
             return path
-        return None
+        return directory
