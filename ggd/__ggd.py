@@ -28,11 +28,12 @@ class Config:
 
     def __repr__(self):
         config = {'VALID_EXTENSION': self.VALID_EXTENSION,
-                'BLOC_IMAGE': self.BLOC_IMAGE,
-                'BLOC_POP': self.BLOC_POP,
-                'BLOC_END': self.BLOC_END,
-                'BLOC_AFTER': self.BLOC_AFTER}
+                  'BLOC_IMAGE': self.BLOC_IMAGE,
+                  'BLOC_POP': self.BLOC_POP,
+                  'BLOC_END': self.BLOC_END,
+                  'BLOC_AFTER': self.BLOC_AFTER}
         return str(config)
+
 
 def create_webdriver(headless=False, web_driver='firefox', **kwargs):
     """
@@ -82,9 +83,9 @@ class GoogleImage:
             add_extensions: bool, if True add extensions finded in url, else
                             save image without extensions (default: True)
             ext_default: str, when images has no extension, the default extension
-                    will be added (default: '.png').
+                        will be added (default: '.png'). Must had `add_extensions` as True.
             close_after_download: bool, when download is done, close the webdriver
-                            (default: True).
+                                (default: True).
 
         ---
         Use example:
@@ -108,7 +109,8 @@ class GoogleImage:
         "Close the webdriver."
         self.driver.close()
 
-    def download(self, request, n_images, directory=None, name=None, make_dir=True):
+    def download(self, request, n_images, directory=None, name=None,
+                 make_dir=True):
         """
         Download images with the webdriver.
 
@@ -142,9 +144,13 @@ class GoogleImage:
                                 time_sleep=self.time_sleep,
                                 n_images=n_images)
 
-        # get all images
+        # show popup
         self.driver.find_element(
             by='class name', value=self.config.BLOC_IMAGE).click()
+
+        # skip first because is a thumbnail
+        self.driver.find_element(by='xpath',
+                                 value=self.config.BLOC_AFTER).click()
 
         all_img = range(n_finded)
 
@@ -167,7 +173,7 @@ class GoogleImage:
                                       name=name_img,
                                       make_dir=make_dir)
 
-        # verify download
+            # verify download
             if file is not None:
                 n_downloads += 1
                 self.all_files.append(file)
