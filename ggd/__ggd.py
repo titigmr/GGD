@@ -26,6 +26,13 @@ class Config:
                   '/div/div/div[3]/div[2]/c-wiz/div/'
                   'div[1]/div[1]/div[1]/a[3]')
 
+    def __repr__(self):
+        config = {'VALID_EXTENSION': self.VALID_EXTENSION,
+                'BLOC_IMAGE': self.BLOC_IMAGE,
+                'BLOC_POP': self.BLOC_POP,
+                'BLOC_END': self.BLOC_END,
+                'BLOC_AFTER': self.BLOC_AFTER}
+        return str(config)
 
 def create_webdriver(headless=False, web_driver='firefox', **kwargs):
     """
@@ -63,6 +70,7 @@ class GoogleImage:
                  driver,
                  time_sleep=1,
                  verbose=True,
+                 add_extensions=True,
                  ext_default='.png',
                  close_after_download=True):
         """
@@ -71,6 +79,8 @@ class GoogleImage:
             driver: selenium webdriver (Chrome, Firefox or Safari) used to web-scraping.
             time_sleep: time waiting in secondes for scrolling (default: 1)
             verbose: bool, show progress bar (default: True).
+            add_extensions: bool, if True add extensions finded in url, else
+                            save image without extensions (default: True)
             ext_default: str, when images has no extension, the default extension
                     will be added (default: '.png').
             close_after_download: bool, when download is done, close the webdriver
@@ -92,6 +102,7 @@ class GoogleImage:
         self.ext_default = ext_default
         self.close_after_download = close_after_download
         self.config = Config()
+        self.add_extensions = add_extensions
 
     def close(self):
         "Close the webdriver."
@@ -218,6 +229,8 @@ class GoogleImage:
     def _build_path_name(self, ext, directory, name, make_dir):
         if ext not in self.valid_extensions:
             ext = self.ext_default
+        if not self.add_extensions:
+            ext = ''
         name += ext
         path = self._create_path_name(directory=directory,
                                       make_dir=make_dir)
