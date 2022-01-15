@@ -17,7 +17,7 @@ Is required using a webdriver ([Geckodriver](https://github.com/mozilla/geckodri
 The folowing command can be used in linux64 platform
 
 ```bash
-wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz && tar -zxvf geckodriver-v0.30.0-linux64.tar.gz && rm geckodriver-v0.30.0-linux64.tar.gz && mv geckodriver /bin/
+wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz && tar -zxvf geckodriver-v0.30.0-linux64.tar.gz && rm geckodriver-v0.30.0-linux64.tar.gz && mv geckodriver /usr/local/bin/
 ```
 
 
@@ -49,10 +49,12 @@ print(gg.all_files)
 For using this package with more requests labeled and see scraping working in backend.
 
 ```python
-driver = create_webdriver(headless=False)
+from ggd import GoogleImage
+
 google_dl = GoogleImage(driver=driver,
                         verbose=True,
-                        close_after_download=False)
+                        close_after_download=False,
+                        headless=False)
 
 n = 500
 for rq, name_im in [("bulbasaur --cards", 'Bulbizarre'),
