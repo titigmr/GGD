@@ -14,46 +14,9 @@ import selenium
 from tqdm import tqdm
 from selenium import webdriver
 
+from .config import Config
 from .exceptions import HTMLError
 
-
-class Config:
-    VALID_EXTENSION = (".png", ".jpg", ".jpeg")
-    BLOC_IMAGE = 'isv-r'
-    BLOC_END = 'mye4qd'
-    BLOC_POP = 'n3VNCb'
-    BLOC_AFTER = ('/html/body/div[2]/c-wiz/div[4]/div[2]/div[3]'
-                  '/div/div/div[3]/div[2]/c-wiz/div/'
-                  'div[1]/div[1]/div[1]/a[3]')
-
-    def __repr__(self):
-        config = {'VALID_EXTENSION': self.VALID_EXTENSION,
-                  'BLOC_IMAGE': self.BLOC_IMAGE,
-                  'BLOC_POP': self.BLOC_POP,
-                  'BLOC_END': self.BLOC_END,
-                  'BLOC_AFTER': self.BLOC_AFTER}
-        return str(config)
-
-
-def create_webdriver(headless=False, web_driver='firefox', **kwargs):
-    """
-    Create an webdriver object
-
-    Params:
-    ----
-        headless: bool, scraping without seeing browser (default False)
-        webdriver: str, choice of webdriver (default 'firefox')
-        **kwargs: other parameters for webdriver
-    """
-    options = getattr(webdriver, web_driver).options.Options()
-
-    if headless:
-        options.add_argument('--headless')
-
-    pager = getattr(
-        webdriver, web_driver.capitalize())(
-        options=options, **kwargs)
-    return pager
 
 
 class GoogleImage:
@@ -68,16 +31,18 @@ class GoogleImage:
     """
 
     def __init__(self,
-                 driver,
+                 driver=None,
                  time_sleep=1,
                  verbose=True,
                  add_extensions=True,
                  ext_default='.png',
-                 close_after_download=True):
+                 close_after_download=True,
+                 **kwargs):
         """
         Download images from Google Image with a webdriver selenium.
 
-            driver: selenium webdriver (Chrome, Firefox or Safari) used to web-scraping.
+            driver: selenium webdriver (Chrome, Firefox or Safari) used to web-scraping
+                    if driver is None use the function `create_webdriver` with kwargs
             time_sleep: time waiting in secondes for scrolling (default: 1)
             verbose: bool, show progress bar (default: True).
             add_extensions: bool, if True add extensions finded in url, else
@@ -89,14 +54,15 @@ class GoogleImage:
 
         ---
         Use example:
-        >>> from ggd import create_webdriver, GoogleImage
-        >>> driver = create_webdriver()
-        >>> google_dl = GoogleImage(driver=driver)
+        >>> from ggd import GoogleImage
+        >>> google_dl = GoogleImage()
         >>> request = 'Cat'
         >>> google_dl.download(request=request, n_images=10)
 
         """
         self.driver = driver
+        if self.driver is None:
+            self.driver = create_webdriver(**kwargs)
         self.time_sleep = time_sleep
         self.verbose = verbose
         self.all_files = []
@@ -297,3 +263,24 @@ class GoogleImage:
             path = os.path.join(directory, self.name)
             return path
         return directory
+
+
+def create_webdriver(headless=True, web_driver='firefox', **kwargs):
+    """
+    Create an webdriver object
+
+    Params:
+    ----
+        headless: bool, scraping without seeing browser (default False)
+        webdriver: str, choice of webdriver (default 'firefox')
+        **kwargs: other parameters for webdriver
+    """
+    options = getattr(webdriver, web_driver).options.Options()
+
+    if headless:
+        options.add_argument('--headless')
+
+    pager = getattr(
+        webdriver, web_driver.capitalize())(
+        options=options, **kwargs)
+    return pager

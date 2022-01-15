@@ -25,15 +25,12 @@ wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodrive
 
 
 ```python
-from ggd import create_webdriver, GoogleImage
+from ggd import GoogleImage
 
-driver = create_webdriver()
-gg = GoogleImage(driver, time_sleep=2)
+gg = GoogleImage()
 gg.download(request='Alakazam', n_images=200)
 ```
 - All images are downloaded in a new folder.
-
-- `time_sleep` parameter is using for scrolling and update the browser. If number of images downloaded is not correct, increase this parameter.
 
 - `all_files` attribute contains all images pathes downloaded.
 
@@ -49,10 +46,10 @@ print(gg.all_files)
 
 ## Advanced Usage
 
-For using this package with more requests labeled and scraping working in backend.
+For using this package with more requests labeled and see scraping working in backend.
 
 ```python
-driver = create_webdriver(headless=True)
+driver = create_webdriver(headless=False)
 google_dl = GoogleImage(driver=driver,
                         verbose=True,
                         close_after_download=False)
