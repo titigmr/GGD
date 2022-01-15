@@ -1,1 +1,1 @@
-from ._exception import HTMLError
+from .__exception import HTMLError
