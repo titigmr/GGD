@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  workflow_call:
+    GITHUB_TOKEN:
+      required: true
+
+jobs:
+  build:
+    name: build package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare before build
+        run: |
+          sudo apt-get update -y
+      - name: Checkout branch
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install drivers
+        run: |
+          bash ci/install_driver.sh
+      - name: Build and test package
