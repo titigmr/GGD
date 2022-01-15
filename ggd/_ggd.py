@@ -22,6 +22,9 @@ class Config:
     BLOC_IMAGE = 'isv-r'
     BLOC_END = 'mye4qd'
     BLOC_POP = 'n3VNCb'
+    BLOC_AFTER = ('/html/body/div[2]/c-wiz/div[4]/div[2]/div[3]'
+                  '/div/div/div[3]/div[2]/c-wiz/div/'
+                  'div[1]/div[1]/div[1]/a[3]')
 
 
 def create_webdriver(headless=False, web_driver='firefox', **kwargs):
@@ -67,7 +70,6 @@ class GoogleImage:
 
             driver: selenium webdriver (Chrome, Firefox or Safari) used to web-scraping.
             time_sleep: time waiting in secondes for scrolling (default: 1)
-                    NOTE: If number of images downloaded is not correct, increase this parameter.
             verbose: bool, show progress bar (default: True).
             ext_default: str, when images has no extension, the default extension
                     will be added (default: '.png').
@@ -76,7 +78,7 @@ class GoogleImage:
 
         ---
         Use example:
-        >>> from ggd import create_webdriver
+        >>> from ggd import create_webdriver, GoogleImage
         >>> driver = create_webdriver()
         >>> google_dl = GoogleImage(driver=driver)
         >>> request = 'Cat'
@@ -125,14 +127,15 @@ class GoogleImage:
                      request=request)
 
         # scroll
-        self._scroll(driver=self.driver,
-                     time_sleep=self.time_sleep,
-                     n_images=n_images)
+        n_finded = self._scroll(driver=self.driver,
+                                time_sleep=self.time_sleep,
+                                n_images=n_images)
 
         # get all images
-        all_img = self.driver.find_elements(
-            by='class name', value=self.config.BLOC_IMAGE)[
-            : None if n_images <= 0 else n_images]
+        self.driver.find_element(
+            by='class name', value=self.config.BLOC_IMAGE).click()
+
+        all_img = range(n_finded)
 
         if not all_img:
             raise HTMLError(name='BLOC_IMAGE', html=self.config.BLOC_IMAGE)
@@ -141,18 +144,10 @@ class GoogleImage:
             all_img = tqdm(all_img, desc=self.name, leave=True)
 
         # download each images
-        for im in all_img:
-            if self._verify_image(im):
-                im.click()
-            else:
-                if self.verbose:
-                    n_unload += 1
-                    all_img.set_postfix({'unloaded': n_unload})
-                continue
-
-            img_url = self.driver.find_element(
+        for _ in all_img:
+            element = self.driver.find_element(
                 by="class name", value=self.config.BLOC_POP)
-            url = img_url.get_attribute('src')
+            url = element.get_attribute('src')
             if url is None:
                 raise HTMLError(name='BLOC_POP', html=self.config.BLOC_POP)
             name_img = f'{self.name}_{n_downloads:0{n_str}d}'
@@ -169,6 +164,9 @@ class GoogleImage:
             if self.verbose and file is None:
                 n_unload += 1
                 all_img.set_postfix({'unloaded': n_unload})
+
+            self.driver.find_element(by='xpath',
+                                     value=self.config.BLOC_AFTER).click()
 
         if self.close_after_download:
             self.close()
@@ -202,24 +200,27 @@ class GoogleImage:
                 if actualise.size['height'] > 0 and actualise.size['width'] > 0:
                     actualise.click()
                 else:
-                    break
+                    n_finded = len(driver.find_elements(
+                        by="class name", value=self.config.BLOC_IMAGE))
+                    return n_finded
+
             last_height = new_height
 
             if n_images >= 0:
-                n_finded = len(
-                    driver.find_elements(
-                        by="class name", value=self.config.BLOC_IMAGE))
+                n_finded = len(driver.find_elements(
+                    by="class name", value=self.config.BLOC_IMAGE))
                 if not n_finded:
                     raise HTMLError(name='BLOC_IMAGE',
                                     html=self.config.BLOC_IMAGE)
-                if n_finded > n_images + 1:
-                    break
+                if n_finded > n_images:
+                    return n_images
 
     def _build_path_name(self, ext, directory, name, make_dir):
         if ext not in self.valid_extensions:
             ext = self.ext_default
         name += ext
-        path = self._create_path_name(directory=directory, make_dir=make_dir)
+        path = self._create_path_name(directory=directory,
+                                      make_dir=make_dir)
         if path is not None:
             self._create_directory(path)
             file = os.path.join(path, name)
@@ -255,21 +256,12 @@ class GoogleImage:
                                          make_dir=make_dir)
             try:
                 with open(file, "wb") as f:
-                    f.write(base64.b64decode(image_url.split('base64')[1]))
+                    f.write(base64.b64decode(image_url.split('base64,')[1]))
             except Exception:
                 return None
         else:
             return None
         return file
-
-    def _verify_image(self, element):
-        """
-        Check if the box is an image
-        """
-        source_element = element.get_attribute('innerHTML')
-        if 'Recherche' in source_element:
-            return False
-        return True
 
     def _create_directory(self, path):
         """
