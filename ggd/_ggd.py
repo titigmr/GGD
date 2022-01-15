@@ -2,7 +2,6 @@
 Module for webscraping images using Google image navigator
 """
 
-
 import requests
 import os
 import re
@@ -14,6 +13,19 @@ import time
 import selenium
 from tqdm import tqdm
 from selenium import webdriver
+
+from .exceptions import HTMLError
+
+
+class Config:
+    VALID_EXTENSION = (".png", ".jpg", ".jpeg")
+    BLOC_IMAGE = 'isv-r'
+    BLOC_END = 'mye4qd'
+    BLOC_POP = 'n3VNCb'
+    BLOC_AFTER = ('/html/body/div[2]/c-wiz/div[4]/div[2]/div[3]'
+                  '/div/div/div[3]/div[2]/c-wiz/div/'
+                  'div[1]/div[1]/div[1]/a[3]')
+
 
 def create_webdriver(headless=False, web_driver='firefox', **kwargs):
     """
@@ -52,25 +64,22 @@ class GoogleImage:
                  time_sleep=1,
                  verbose=True,
                  ext_default='.png',
-                 close_after_download=True,
-                 make_dir=True):
+                 close_after_download=True):
         """
         Download images from Google Image with a webdriver selenium.
 
             driver: selenium webdriver (Chrome, Firefox or Safari) used to web-scraping.
             time_sleep: time waiting in secondes for scrolling (default: 1)
-                    NOTE: If number of images downloaded is not correct, increase this parameter.
             verbose: bool, show progress bar (default: True).
             ext_default: str, when images has no extension, the default extension
                     will be added (default: '.png').
             close_after_download: bool, when download is done, close the webdriver
                             (default: True).
-            make_dir: bool, (default: True) create a directory to save images.
 
         ---
         Use example:
-        >>> from selenium import webdriver
-        >>> driver = webdriver.Firefox()
+        >>> from ggd import create_webdriver, GoogleImage
+        >>> driver = create_webdriver()
         >>> google_dl = GoogleImage(driver=driver)
         >>> request = 'Cat'
         >>> google_dl.download(request=request, n_images=10)
@@ -82,23 +91,26 @@ class GoogleImage:
         self.all_files = []
         self.ext_default = ext_default
         self.close_after_download = close_after_download
-        self.make_dir = make_dir
+        self.config = Config()
 
     def close(self):
         "Close the webdriver."
         self.driver.close()
 
-    def download(self, request, n_images, directory=None, name=None):
+    def download(self, request, n_images, directory=None, name=None, make_dir=True):
         """
         Download images with the webdriver.
 
         Parameters:
         ----------
         request: str, request searched in google image.
-        n_images: int, number of images to download.
+        n_images: int, number of images to download, if value
+                  is -1, select all images in the page.
         directory: str, where images are downloaded.
-        name: str, name of the directory and filenames (default: None).
+        name: str, name of the directory (if make_dir is True)
+              and filenames (default: None).
               If None, the name is given by the value of the request.
+        make_dir: bool, (default: True) create a directory to save images.
 
         """
 
@@ -106,7 +118,7 @@ class GoogleImage:
         url = f"https://www.google.fr/search?q={request}&tbm=isch&pws=0"
         n_downloads = 0
         n_unload = 0
-        self.valid_extensions = (".png", ".jpg", ".jpeg")
+        self.valid_extensions = self.config.VALID_EXTENSION
         n_str = len(str(n_images))
         self.name = str(request) if name is None else str(name)
 
@@ -115,35 +127,34 @@ class GoogleImage:
                      request=request)
 
         # scroll
-        self._scroll(driver=self.driver,
-                     time_sleep=self.time_sleep,
-                     n_images=n_images + 1)
+        n_finded = self._scroll(driver=self.driver,
+                                time_sleep=self.time_sleep,
+                                n_images=n_images)
 
         # get all images
-        all_img = self.driver.find_elements(
-            by='class name', value='isv-r')[:n_images]
+        self.driver.find_element(
+            by='class name', value=self.config.BLOC_IMAGE).click()
+
+        all_img = range(n_finded)
+
+        if not all_img:
+            raise HTMLError(name='BLOC_IMAGE', html=self.config.BLOC_IMAGE)
 
         if self.verbose:
             all_img = tqdm(all_img, desc=self.name, leave=True)
 
         # download each images
-        for im in all_img:
-            if self._verify_image(im):
-                im.click()
-            else:
-                if self.verbose:
-                    n_unload += 1
-                    all_img.set_postfix({'unloaded': n_unload})
-                continue
-
-            img_url = self.driver.find_element(by="class name", value='n3VNCb')
-            url = img_url.get_attribute('src')
+        for _ in all_img:
+            element = self.driver.find_element(
+                by="class name", value=self.config.BLOC_POP)
+            url = element.get_attribute('src')
+            if url is None:
+                raise HTMLError(name='BLOC_POP', html=self.config.BLOC_POP)
             name_img = f'{self.name}_{n_downloads:0{n_str}d}'
             file = self._download_img(url,
                                       directory=directory,
                                       name=name_img,
-                                      ext_default=self.ext_default,
-                                      make_dir=self.make_dir)
+                                      make_dir=make_dir)
 
         # verify download
             if file is not None:
@@ -153,6 +164,9 @@ class GoogleImage:
             if self.verbose and file is None:
                 n_unload += 1
                 all_img.set_postfix({'unloaded': n_unload})
+
+            self.driver.find_element(by='xpath',
+                                     value=self.config.BLOC_AFTER).click()
 
         if self.close_after_download:
             self.close()
@@ -178,40 +192,56 @@ class GoogleImage:
             new_height = driver.execute_script(
                 "return document.body.scrollHeight")
             if new_height == last_height:
-                actualise = driver.find_element(by="class name", value='mye4qd')
+                try:
+                    actualise = driver.find_element(
+                        by="class name", value=self.config.BLOC_END)
+                except:
+                    raise HTMLError(name='BLOC_END', html=self.config.BLOC_END)
                 if actualise.size['height'] > 0 and actualise.size['width'] > 0:
                     actualise.click()
                 else:
-                    break
+                    n_finded = len(driver.find_elements(
+                        by="class name", value=self.config.BLOC_IMAGE))
+                    return n_finded
+
             last_height = new_height
-            if n_images > 0:
-                if len(driver.find_elements(
-                        by="class name", value='isv-r')) > n_images + 1:
-                    break
+
+            if n_images >= 0:
+                n_finded = len(driver.find_elements(
+                    by="class name", value=self.config.BLOC_IMAGE))
+                if not n_finded:
+                    raise HTMLError(name='BLOC_IMAGE',
+                                    html=self.config.BLOC_IMAGE)
+                if n_finded > n_images:
+                    return n_images
+
+    def _build_path_name(self, ext, directory, name, make_dir):
+        if ext not in self.valid_extensions:
+            ext = self.ext_default
+        name += ext
+        path = self._create_path_name(directory=directory,
+                                      make_dir=make_dir)
+        if path is not None:
+            self._create_directory(path)
+            file = os.path.join(path, name)
+        else:
+            file = name
+        return file
 
     def _download_img(self,
                       image_url,
                       name,
                       directory=None,
-                      ext_default='.png',
                       make_dir=True):
         """
         Download image with an image url or a base64 encoded binary
-
-        NOTE: Need refacto
         """
         if 'http' in image_url:
             ext = pathlib.Path(image_url).suffix
-            if ext not in self.valid_extensions:
-                ext = ext_default
-            name += ext
-            path = self._create_path_name(directory=directory,
-                                          make_dir=make_dir)
-            if path is not None:
-                self._create_directory(path)
-                file = os.path.join(path, name)
-            else:
-                file = name
+            file = self._build_path_name(ext=ext,
+                                         name=name,
+                                         directory=directory,
+                                         make_dir=make_dir)
             try:
                 with open(file, "wb") as f:
                     f.write(requests.get(image_url).content)
@@ -220,33 +250,18 @@ class GoogleImage:
 
         elif 'base64' in image_url:
             ext = re.findall('data:image/(.*);', image_url)
-            if ext not in self.valid_extensions:
-                ext = ext_default
-            name += ext
-            path = self._create_path_name(directory=directory,
-                                          make_dir=make_dir)
-            if path is not None:
-                self._create_directory(path)
-                file = os.path.join(path, name)
-            else:
-                file = name
+            file = self._build_path_name(ext=ext,
+                                         name=name,
+                                         directory=directory,
+                                         make_dir=make_dir)
             try:
                 with open(file, "wb") as f:
-                    f.write(base64.b64decode(image_url.split('base64')[1]))
+                    f.write(base64.b64decode(image_url.split('base64,')[1]))
             except Exception:
                 return None
         else:
             return None
         return file
-
-    def _verify_image(self, element):
-        """
-        Check if the box is an image
-        """
-        source_element = element.get_attribute('innerHTML')
-        if 'Recherche' in source_element:
-            return False
-        return True
 
     def _create_directory(self, path):
         """
@@ -258,8 +273,8 @@ class GoogleImage:
         """
         Build the path name where image is saved
         """
-        directory = '' if directory is None else directory
         if make_dir:
+            directory = '' if directory is None else directory
             path = os.path.join(directory, self.name)
             return path
-        return None
+        return directory
