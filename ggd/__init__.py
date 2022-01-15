@@ -1,1 +1,1 @@
-from ._ggd import create_webdriver, GoogleImage
+from .__ggd import create_webdriver, GoogleImage
