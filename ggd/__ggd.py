@@ -18,7 +18,6 @@ from .config import Config
 from .exceptions import HTMLError
 
 
-
 class GoogleImage:
     """
     Google images downloader.
@@ -60,15 +59,19 @@ class GoogleImage:
         >>> google_dl.download(request=request, n_images=10)
 
         """
-        self.driver = driver
-        if self.driver is None:
-            self.driver = create_webdriver(**kwargs)
+        if 'config' not in kwargs :
+            self.config = Config()
+        else:
+            self.config = kwargs["config"]
+            kwargs.pop('config')
+
+        self.driver = create_webdriver(**kwargs) if driver is None else driver
         self.time_sleep = time_sleep
         self.verbose = verbose
         self.all_files = []
         self.ext_default = ext_default
         self.close_after_download = close_after_download
-        self.config = Config()
+        self.name = ''
         self.add_extensions = add_extensions
 
     def close(self):
@@ -97,7 +100,6 @@ class GoogleImage:
         url = f"https://www.google.fr/search?q={request}&tbm=isch&pws=0"
         n_downloads = 0
         n_unload = 0
-        self.valid_extensions = self.config.VALID_EXTENSION
         n_str = len(str(n_images))
         self.name = str(request) if name is None else str(name)
 
@@ -199,7 +201,7 @@ class GoogleImage:
                     return n_images
 
     def _build_path_name(self, ext, directory, name, make_dir):
-        if ext not in self.valid_extensions:
+        if ext not in self.config.VALID_EXTENSION:
             ext = self.ext_default
         if not self.add_extensions:
             ext = ''
@@ -234,7 +236,7 @@ class GoogleImage:
                 return None
 
         elif 'base64' in image_url:
-            ext = re.findall('data:image/(.*);', image_url)
+            ext = '.' + re.findall('data:image/(.*);', image_url)[0]
             file = self._build_path_name(ext=ext,
                                          name=name,
                                          directory=directory,

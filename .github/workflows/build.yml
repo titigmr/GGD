@@ -1,0 +1,51 @@
+name: Template CI
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        webdriver: ['firefox', 'chrome']
+      fail-fast: false
+
+    name: Build with ${{ matrix.webdriver }}
+    steps:
+      - name: Prepare before build
+        run: |
+          sudo apt-get update -y
+
+      - name: Checkout branch
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Firefox
+        if: ${{ matrix.webdriver == 'firefox' }}
+        uses: browser-actions/setup-firefox@latest
+        with:
+          firefox-version: '92.0'
+
+      - name: Setup Chrome
+        if: ${{ matrix.webdriver == 'chrome' }}
+        uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: 'latest'
+          # choice version is not available
+
+      - name: Install ${{ matrix.webdriver }} webdriver
+        run: |
+          bash ci/install_driver.sh ${{ matrix.webdriver }}
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Build and test package
+        run: |
+          bash ci/install_tests.sh
+
+
+
