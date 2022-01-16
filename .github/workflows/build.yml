@@ -25,12 +25,16 @@ jobs:
       - name: Install webdriver
         run: |
           bash ci/install_driver.sh
+      
       - uses: actions/setup-python@v2
         with:
           python-version: '3.9'
+          
       - name: Build and test package
         run: |
           pip install --upgrade pip && pip install -e .
           pip install pytest
           python -m pytest tests/*
+          
+
 
