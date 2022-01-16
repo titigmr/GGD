@@ -1,6 +1,6 @@
 # Google Image Downloader
 
-![pypi](https://github.com/titigmr/GGD/actions/workflows/pip-publish.yml/badge.svg)
+![pypi](https://github.com/titigmr/GGD/actions/workflows/pip-publish.yml/badge.svg) ![ci](https://github.com/titigmr/GGD/actions/workflows/push.yml/badge.svg)
 
 Usefull package for collecting image label in machine learning usecases.
 
