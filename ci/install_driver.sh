@@ -10,7 +10,7 @@ if [ $* = "firefox" ];
 elif [ $* = 'chrome' ]
     then
     wget https://chromedriver.storage.googleapis.com/98.0.4758.48/chromedriver_linux64.zip
-    tar -zxvf chromedriver_linux64.zip
+    unzip chromedriver_linux64.zip
     rm chromedriver_linux64.zip
     mv chromedriver /usr/local/bin/
 
