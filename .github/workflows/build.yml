@@ -2,8 +2,6 @@ name: CI
 
 on:
   workflow_call:
-    GITHUB_TOKEN:
-      required: true
 
 jobs:
   build:
@@ -13,11 +11,26 @@ jobs:
       - name: Prepare before build
         run: |
           sudo apt-get update -y
+
       - name: Checkout branch
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Install drivers
+
+      - name: Setup Firefox
+        uses: browser-actions/setup-firefox@latest
+        with:
+          firefox-version: '92.0'
+
+      - name: Install webdriver
         run: |
           bash ci/install_driver.sh
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
       - name: Build and test package
+        run: |
+          pip install --upgrade pip && pip install -e .
+          pip install pytest
+          python -m pytest tests/*
+
