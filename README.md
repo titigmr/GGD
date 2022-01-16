@@ -12,7 +12,7 @@ This package is available on pypi repository
 pip install ggd
 ```
 
-Is required using a webdriver ([Geckodriver](https://github.com/mozilla/geckodriver/releases), [Chromedriver](https://chromedriver.chromium.org/downloads), etc...) and have the executable in the path.
+Is required have installed the browser, using a webdriver ([Geckodriver](https://github.com/mozilla/geckodriver/releases) or [Chromedriver](https://chromedriver.chromium.org/downloads)) and have the executable in the path.
 
 The following command can be used in linux64 platform
 
