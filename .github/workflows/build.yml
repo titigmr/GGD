@@ -31,7 +31,7 @@ jobs:
         if: ${{ matrix.webdriver }} == 'chrome'
         uses: browser-actions/setup-chrome@latest
         with:
-          chrome-version: '98.0'
+          chrome-version: '98'
 
       - name: Install ${{ matrix.webdriver }} webdriver
         run: |
