@@ -9,6 +9,7 @@ jobs:
     strategy:
       matrix:
         webdriver: ['firefox', 'chrome']
+      fail-fast: false
 
     name: Build with ${{ matrix.webdriver }}
     steps:
@@ -22,16 +23,17 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Firefox
-        if: ${{ matrix.webdriver }} == 'firefox'
+        if: ( success() && ${{ matrix.webdriver }} == 'firefox' )
         uses: browser-actions/setup-firefox@latest
         with:
           firefox-version: '92.0'
 
       - name: Setup Chrome
-        if: ${{ matrix.webdriver }} == 'chrome'
+        if: ( success() && ${{ matrix.webdriver }} == 'chrome' )
         uses: browser-actions/setup-chrome@latest
         with:
-          chrome-version: '98'
+          chrome-version: 'latest'
+          # choice version is not available
 
       - name: Install ${{ matrix.webdriver }} webdriver
         run: |
