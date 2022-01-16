@@ -59,15 +59,18 @@ class GoogleImage:
         >>> google_dl.download(request=request, n_images=10)
 
         """
-        self.driver = driver
-        if self.driver is None:
-            self.driver = create_webdriver(**kwargs)
+        if 'config' not in kwargs :
+            self.config = Config()
+        else:
+            self.config = kwargs["config"]
+            kwargs.pop('config')
+
+        self.driver = create_webdriver(**kwargs) if driver is None else driver
         self.time_sleep = time_sleep
         self.verbose = verbose
         self.all_files = []
         self.ext_default = ext_default
         self.close_after_download = close_after_download
-        self.config = Config()
         self.name = ''
         self.add_extensions = add_extensions
 

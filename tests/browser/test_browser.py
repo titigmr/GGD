@@ -2,6 +2,7 @@ from ggd import GoogleImage
 from glob import glob
 import os
 import pathlib
+from PIL import Image
 from selenium.webdriver.remote.command import Command
 
 
@@ -9,6 +10,12 @@ def clear_dir(folder):
     for pt in glob(os.path.join(folder, '*')):
         os.remove(pt)
     os.rmdir(folder)
+
+
+def folder_image_sizes(files):
+    shapes = [Image.open(im).size for im in files]
+    max_shape = max(max(shapes))
+    return max_shape
 
 
 def read_asset(file):
@@ -91,7 +98,12 @@ def test_download():
     gg.download(dirf, n_images=n_images)
     files = glob(os.path.join(dirf, '*'))
     sum_size = sum([pathlib.Path(f).stat().st_size * 0.001 for f in files])
+    max_size = folder_image_sizes(files)
+    # check if all images are download
     assert n_images == len(files)
+    # check if not thumbnails
+    assert max_size >= 500
+    # check if not empty files
     assert sum_size > 1
     clear_dir(dirf)
 
