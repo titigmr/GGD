@@ -1,1 +1,1 @@
-from .__match import get_hash
+from .__match import get_hash, get_info, get_shape, get_size

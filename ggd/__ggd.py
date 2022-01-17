@@ -14,6 +14,7 @@ import selenium
 from tqdm import tqdm
 from selenium import webdriver
 
+from .match import get_info
 from .config import Config
 from .exceptions import HTMLError
 
@@ -68,7 +69,7 @@ class GoogleImage:
         self.driver = create_webdriver(**kwargs) if driver is None else driver
         self.time_sleep = time_sleep
         self.verbose = verbose
-        self.all_files = []
+        self.all_files = {}
         self.ext_default = ext_default
         self.close_after_download = close_after_download
         self.name = ''
@@ -144,7 +145,8 @@ class GoogleImage:
             # verify download
             if file is not None:
                 n_downloads += 1
-                self.all_files.append(file)
+                info = get_info(filepath=file, url=url)
+                self.all_files[file] = info
 
             if self.verbose and file is None:
                 n_unload += 1
