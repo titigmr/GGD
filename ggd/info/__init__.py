@@ -1,0 +1,1 @@
+from .__info import get_hash, get_info, get_shape, get_size

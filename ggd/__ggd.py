@@ -12,9 +12,10 @@ import time
 
 import selenium
 from tqdm import tqdm
+from selenium.common.exceptions import ElementClickInterceptedException
 from selenium import webdriver
 
-from .match import get_info
+from .info import get_info
 from .config import Config
 from .exceptions import HTMLError
 
@@ -60,7 +61,7 @@ class GoogleImage:
         >>> google_dl.download(request=request, n_images=10)
 
         """
-        if 'config' not in kwargs :
+        if 'config' not in kwargs:
             self.config = Config()
         else:
             self.config = kwargs["config"]
@@ -69,7 +70,7 @@ class GoogleImage:
         self.driver = create_webdriver(**kwargs) if driver is None else driver
         self.time_sleep = time_sleep
         self.verbose = verbose
-        self.all_files = {}
+        self.all_files = []
         self.ext_default = ext_default
         self.close_after_download = close_after_download
         self.name = ''
@@ -114,17 +115,20 @@ class GoogleImage:
                                 n_images=n_images)
 
         # show popup
-        self.driver.find_element(
-            by='class name', value=self.config.BLOC_IMAGE).click()
+        try:
+            self.driver.find_element(
+                by='class name', value=self.config.BLOC_IMAGE).click()
+        except:
+            raise HTMLError(name='BLOC_IMAGE', html=self.config.BLOC_IMAGE)
 
         # skip first because is a thumbnail
-        self.driver.find_element(by='xpath',
+        try:
+            self.driver.find_element(by='xpath',
                                  value=self.config.BLOC_AFTER).click()
+        except:
+            raise HTMLError(name='BLOC_AFTER', html=self.config.BLOC_AFTER)
 
         all_img = range(n_finded)
-
-        if not all_img:
-            raise HTMLError(name='BLOC_IMAGE', html=self.config.BLOC_IMAGE)
 
         if self.verbose:
             all_img = tqdm(all_img, desc=self.name, leave=True)
@@ -145,15 +149,18 @@ class GoogleImage:
             # verify download
             if file is not None:
                 n_downloads += 1
-                info = get_info(filepath=file, url=url)
-                self.all_files[file] = info
+                file_info = get_info(filepath=file, url=url)
+                self.all_files.append(file_info)
 
             if self.verbose and file is None:
                 n_unload += 1
                 all_img.set_postfix({'unloaded': n_unload})
 
-            self.driver.find_element(by='xpath',
-                                     value=self.config.BLOC_AFTER).click()
+            try:
+                self.driver.find_element(by='xpath',
+                                         value=self.config.BLOC_AFTER).click()
+            except ElementClickInterceptedException:
+                break
 
         if self.close_after_download:
             self.close()

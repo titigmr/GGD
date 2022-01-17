@@ -1,4 +1,5 @@
 from ggd import GoogleImage
+from ggd.info import get_size
 from glob import glob
 import os
 import pathlib
@@ -12,7 +13,7 @@ def clear_dir(folder):
     os.rmdir(folder)
 
 
-def folder_image_sizes(files):
+def folder_image_shape(files):
     shapes = [Image.open(im).size for im in files]
     max_shape = max(max(shapes))
     return max_shape
@@ -55,8 +56,9 @@ def test_download_url():
     file = gg._download_img(image_url=img_url,
                             name="Alakazam",
                             make_dir=True)
-    assert file == 'Alakazam/Alakazam.png'
-    assert pathlib.Path('Alakazam/Alakazam.png').is_file()
+    file_t = os.path.join('Alakazam', 'Alakazam.png')
+    assert file == file_t
+    assert pathlib.Path(file_t).is_file()
     clear_dir(dirf)
 
 
@@ -68,8 +70,9 @@ def test_download_data_uri():
     file = gg._download_img(image_url=img_uri,
                             name="Alakazam",
                             make_dir=True)
-    assert file == 'Alakazam/Alakazam.jpeg'
-    assert pathlib.Path('Alakazam/Alakazam.jpeg').is_file()
+    file_t = os.path.join('Alakazam', 'Alakazam.jpeg')
+    assert file == file_t
+    assert pathlib.Path(file_t).is_file()
     clear_dir(dirf)
 
 
@@ -86,8 +89,8 @@ def test_download_dir_closeaf_witext():
                 make_dir=False, directory="Images")
     gg.close()
     files = glob(os.path.join(dirf, '*'))
-    assert 'Images/Alakazam_0' in files
-    assert 'Images/Tortank_0' in files
+    assert os.path.join('Images', 'Alakazam_0') in files
+    assert os.path.join('Images', 'Tortank_0') in files
     clear_dir(dirf)
 
 
@@ -97,12 +100,12 @@ def test_download():
     n_images = 10
     gg.download(dirf, n_images=n_images)
     files = glob(os.path.join(dirf, '*'))
-    sum_size = sum([pathlib.Path(f).stat().st_size * 0.001 for f in files])
-    max_size = folder_image_sizes(files)
+    sum_size = sum([size["kb"] for size in gg.all_files.values()])
+    max_shape = folder_image_shape(files)
     # check if all images are download
     assert n_images == len(files)
     # check if not thumbnails
-    assert max_size >= 500
+    assert max_shape >= 500
     # check if not empty files
     assert sum_size > 1
     clear_dir(dirf)

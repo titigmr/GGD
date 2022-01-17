@@ -30,12 +30,15 @@ def get_shape(filepath: str) -> str:
         filepath : str, filename of image
     Returns
     -------
-        shape : tuple, (tuple shape of image, ndim)
+        witdh: int
+        height: int
+        ndim: int
+        readable: bool
     """
     try:
         im = Image.open(filepath)
     except Exception:
-        return None, None, None, False
+        return 0, 0, 0, False
     height, witdh = im.size
     mode = str(im.mode)
     ndim = 1 if len(mode) < 3 else len(mode)
@@ -72,6 +75,7 @@ def get_info(filepath: str, url=None) -> dict:
     hash = get_hash(filepath=filepath)
     size = get_size(filepath=filepath)
     return {'hash': hash,
+            'filepath': filepath,
             'readable': r,
             'uri': url,
             'witdh': w,
